@@ -14,7 +14,7 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: { preventDefault: () => void; }) => {
     e.preventDefault();
     setLoading(true);
     setError('');
@@ -53,7 +53,7 @@ const LoginPage = () => {
         {/* Logo e Título */}
         <div className="text-center">
           <div className="flex items-center justify-center mb-3">
-            <div className="bg-gray-700 p-3 rounded-full shadow-lg">
+            <div className="bg-white p-3 rounded-full shadow-lg">
               <img 
                 src="/favicon.png" 
                 alt="CoreWave Logo" 
@@ -61,8 +61,8 @@ const LoginPage = () => {
               />
             </div>
           </div>
-          <h1 className="text-3xl font-bold text-gray-600">CoreWave</h1>
-          <p className="text-gray-600 text-sm mt-1">Sistema de Monitoramento de Eventos Extremos</p>
+          <h1 className="text-3xl font-bold text-white">CoreWave</h1>
+          <p className="text-white text-sm mt-1">Sistema de Monitoramento de Eventos Extremos</p>
         </div>
 
         {/* Card de Boas-vindas */}
