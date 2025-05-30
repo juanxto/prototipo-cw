@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { AlertTriangle, MapPin, TrendingUp, Bell, Users, Activity, Plus, FileX } from 'lucide-react';
+import Header from '../../components/Header'; 
 
 export default function DashboardPage() {
   const [stats, setStats] = useState({
@@ -16,7 +17,7 @@ export default function DashboardPage() {
   const [eventos, setEventos] = useState([]);
 
   // Dados vazios para os gráficos
-  const chartData: any[] | undefined = [];
+  const chartData = [];
 
   const handleAddEvent = () => {
     setShowModal(true);
@@ -26,10 +27,11 @@ export default function DashboardPage() {
     setShowModal(false);
   };
 
-  const handleSubmitEvent = (eventData: { tipo?: string; local?: string; severidade: any; descricao?: string; }) => {
+  const handleSubmitEvent = (eventData) => {
     // Aqui você integrará com o backend Quarkus
     console.log('Evento a ser enviado para o backend:', eventData);
     
+    // Por enquanto, apenas simula a adição local
     const novoEvento = {
       id: Date.now(),
       ...eventData,
@@ -48,20 +50,20 @@ export default function DashboardPage() {
   };
 
   const StatCard = ({ icon: Icon, title, value, color, trend }) => (
-    <div className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow">
+    <div className="bg-white rounded-xl p-4 sm:p-6 shadow-lg hover:shadow-xl transition-shadow">
       <div className="flex items-center justify-between">
-        <div>
-          <p className="text-gray-600 text-sm font-medium">{title}</p>
-          <p className="text-2xl font-bold text-gray-800 mt-1">{value}</p>
+        <div className="min-w-0 flex-1">
+          <p className="text-gray-600 text-xs sm:text-sm font-medium truncate">{title}</p>
+          <p className="text-xl sm:text-2xl font-bold text-gray-800 mt-1">{value}</p>
           {trend && (
-            <p className="text-green-600 text-sm flex items-center mt-1">
-              <TrendingUp className="w-4 h-4 mr-1" />
+            <p className="text-green-600 text-xs sm:text-sm flex items-center mt-1">
+              <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
               {trend}
             </p>
           )}
         </div>
-        <div className={`p-3 rounded-full ${color}`}>
-          <Icon className="w-6 h-6 text-white" />
+        <div className={`p-2 sm:p-3 rounded-full ${color} flex-shrink-0 ml-2`}>
+          <Icon className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
         </div>
       </div>
     </div>
@@ -89,8 +91,8 @@ export default function DashboardPage() {
     if (!showModal) return null;
 
     return (
-      <div className="fixed inset-0 backdrop-blur-xs flex items-center justify-center z-50">
-        <div className="bg-white rounded-xl p-6 w-full max-w-md mx-4">
+      <div className="fixed inset-0 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-xl p-4 sm:p-6 w-full max-w-md mx-auto">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">Adicionar Novo Evento</h3>
           
           <div className="space-y-4">
@@ -100,7 +102,7 @@ export default function DashboardPage() {
                 name="tipo"
                 value={formData.tipo}
                 onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
                 required
               >
                 <option value="">Selecione o tipo</option>
@@ -121,7 +123,7 @@ export default function DashboardPage() {
                 value={formData.local}
                 onChange={handleInputChange}
                 placeholder="Ex: São Paulo, SP"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
                 required
               />
             </div>
@@ -132,7 +134,7 @@ export default function DashboardPage() {
                 name="severidade"
                 value={formData.severidade}
                 onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
               >
                 <option value="baixa">Baixa</option>
                 <option value="média">Média</option>
@@ -148,22 +150,22 @@ export default function DashboardPage() {
                 onChange={handleInputChange}
                 placeholder="Descreva os detalhes do evento..."
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
               />
             </div>
 
-            <div className="flex space-x-3 pt-4">
+            <div className="flex flex-col sm:flex-row gap-3 pt-4">
               <button
                 type="button"
                 onClick={handleCloseModal}
-                className="flex-1 px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
+                className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors order-2 sm:order-1"
               >
                 Cancelar
               </button>
               <button
                 type="button"
                 onClick={handleSubmit}
-                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors order-1 sm:order-2"
               >
                 Adicionar Evento
               </button>
@@ -175,55 +177,27 @@ export default function DashboardPage() {
   };
 
   const EmptyState = ({ title, description, icon: Icon }) => (
-    <div className="flex flex-col items-center justify-center py-12 text-center">
-      <Icon className="w-16 h-16 text-gray-300 mb-4" />
-      <h3 className="text-lg font-medium text-gray-900 mb-2">{title}</h3>
-      <p className="text-gray-500 max-w-sm">{description}</p>
+    <div className="flex flex-col items-center justify-center py-8 sm:py-12 text-center px-4">
+      <Icon className="w-12 h-12 sm:w-16 sm:h-16 text-gray-300 mb-3 sm:mb-4" />
+      <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">{title}</h3>
+      <p className="text-sm sm:text-base text-gray-500 max-w-sm">{description}</p>
     </div>
   );
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center">
-              <img 
-                src="/favicon.png" 
-                alt="CoreWave Logo" 
-                className="w-8 h-8 font mr-3"
-              />
-              <h1 className="text-2xl font-bold text-gray-800">CoreWave</h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={handleAddEvent}
-                className="flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Adicionar Evento
-              </button>
-              <button className="p-2 text-gray-600 hover:text-gray-800 rounded-lg hover:bg-gray-100">
-                <Bell className="w-5 h-5" />
-              </button>
-              <div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center">
-                <Users className="w-4 h-4 text-white" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
+      {/* Header Component */}
+      <Header onAddEvent={handleAddEvent} />
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Dashboard de Monitoramento</h2>
-          <p className="text-gray-600">Visão geral dos eventos extremos em tempo real</p>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <div className="mb-6 sm:mb-8">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2">Dashboard de Monitoramento</h2>
+          <p className="text-sm sm:text-base text-gray-600">Visão geral dos eventos extremos em tempo real</p>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
           <StatCard
             icon={Activity}
             title="Total de Eventos"
@@ -251,10 +225,10 @@ export default function DashboardPage() {
         </div>
 
         {/* Charts Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 mb-6 sm:mb-8">
           {/* Gráfico de Barras */}
-          <div className="bg-white rounded-xl p-6 shadow-lg">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Eventos por Tipo</h3>
+          <div className="bg-white rounded-xl p-4 sm:p-6 shadow-lg">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-4">Eventos por Tipo</h3>
             {chartData.length === 0 ? (
               <EmptyState 
                 title="Nenhum evento registrado"
@@ -275,8 +249,8 @@ export default function DashboardPage() {
           </div>
 
           {/* Gráfico de Pizza */}
-          <div className="bg-white rounded-xl p-6 shadow-lg">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Distribuição por Severidade</h3>
+          <div className="bg-white rounded-xl p-4 sm:p-6 shadow-lg">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-4">Distribuição por Severidade</h3>
             {chartData.length === 0 ? (
               <EmptyState 
                 title="Nenhum evento registrado"
@@ -307,13 +281,13 @@ export default function DashboardPage() {
         </div>
 
         {/* Recent Events */}
-        <div className="bg-white rounded-xl p-6 shadow-lg">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold text-gray-800">Eventos Recentes</h3>
+        <div className="bg-white rounded-xl p-4 sm:p-6 shadow-lg">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-2">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-800">Eventos Recentes</h3>
             {eventos.length > 0 && (
               <button
                 onClick={handleAddEvent}
-                className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                className="text-red-600 hover:text-red-700 text-sm font-medium self-start sm:self-auto"
               >
                 Adicionar mais
               </button>
@@ -327,18 +301,18 @@ export default function DashboardPage() {
               icon={FileX}
             />
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {eventos.map((event) => (
-                <div key={event.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50">
+                <div key={event.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 border border-gray-200 rounded-lg hover:bg-gray-50 gap-3 sm:gap-0">
                   <div className="flex items-center">
-                    <MapPin className="w-5 h-5 text-gray-400 mr-3" />
+                    <MapPin className="w-5 h-5 text-gray-400 mr-3 flex-shrink-0" />
                     <div>
-                      <p className="font-medium text-gray-800">{event.tipo}</p>
-                      <p className="text-sm text-gray-600">{event.local}</p>
+                      <p className="font-medium text-gray-800 text-sm sm:text-base">{event.tipo}</p>
+                      <p className="text-xs sm:text-sm text-gray-600">{event.local}</p>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-3">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                  <div className="flex items-center justify-between sm:justify-end sm:space-x-3 ml-8 sm:ml-0">
+                    <span className={`px-2 sm:px-3 py-1 rounded-full text-xs font-medium ${
                       event.severidade === 'alta' 
                         ? 'bg-red-100 text-red-800' 
                         : event.severidade === 'média'
@@ -347,7 +321,7 @@ export default function DashboardPage() {
                     }`}>
                       {event.severidade}
                     </span>
-                    <span className="text-sm text-gray-500">{event.tempo}</span>
+                    <span className="text-xs sm:text-sm text-gray-500">{event.tempo}</span>
                   </div>
                 </div>
               ))}
