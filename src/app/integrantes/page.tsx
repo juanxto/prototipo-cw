@@ -13,7 +13,7 @@ export default function IntegrantesPage() {
   const integrantes = [
     {
       nome: "João Alves",
-      rm: "RM12345",
+      rm: "RM559369",
       turma: "1TDSPB - Agosto",
       github: "https://github.com/ehojonv",
       linkedin: "https://www.linkedin.com/in/joao-v-alves/",
@@ -29,7 +29,7 @@ export default function IntegrantesPage() {
     },
     {
       nome: "Matheus Mariotto",
-      rm: "RM12347", 
+      rm: "RM560276", 
       turma: "1TDSPB - Agosto",
       github: "https://github.com/matheusmariotto1206",
       linkedin: "https://www.linkedin.com/in/matheus-mariotto-0a68a5204/",
