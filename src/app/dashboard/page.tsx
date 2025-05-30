@@ -17,7 +17,7 @@ export default function DashboardPage() {
   const [eventos, setEventos] = useState([]);
 
   // Dados vazios para os gráficos
-  const chartData = [];
+  const chartData: any[] | undefined = [];
 
   const handleAddEvent = () => {
     setShowModal(true);
@@ -27,7 +27,7 @@ export default function DashboardPage() {
     setShowModal(false);
   };
 
-  const handleSubmitEvent = (eventData) => {
+  const handleSubmitEvent = (eventData: { tipo?: string; local?: string; severidade: any; descricao?: string; }) => {
     // Aqui você integrará com o backend Quarkus
     console.log('Evento a ser enviado para o backend:', eventData);
     
@@ -77,7 +77,7 @@ export default function DashboardPage() {
       descricao: ''
     });
 
-    const handleInputChange = (e) => {
+    const handleInputChange = (e: { target: { name: any; value: any; }; }) => {
       const { name, value } = e.target;
       setFormData(prev => ({ ...prev, [name]: value }));
     };
@@ -202,26 +202,22 @@ export default function DashboardPage() {
             icon={Activity}
             title="Total de Eventos"
             value={stats.totalEventos}
-            color="bg-blue-500"
-          />
+            color="bg-blue-500" trend={undefined}          />
           <StatCard
             icon={AlertTriangle}
             title="Eventos Ativos"
             value={stats.eventosAtivos}
-            color="bg-red-500"
-          />
+            color="bg-red-500" trend={undefined}          />
           <StatCard
             icon={TrendingUp}
             title="Severidade Alta"
             value={stats.severidadeAlta}
-            color="bg-orange-500"
-          />
+            color="bg-orange-500" trend={undefined}          />
           <StatCard
             icon={Bell}
             title="Novas Ocorrências"
             value={stats.novasOcorrencias}
-            color="bg-green-500"
-          />
+            color="bg-green-500" trend={undefined}          />
         </div>
 
         {/* Charts Section */}
