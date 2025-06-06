@@ -9,7 +9,6 @@ export default function DashboardPage() {
     totalEventos: 0,
     eventosAtivos: 0,
     severidadeAlta: 0,
-    novasOcorrencias: 0
   });
 
   const [showModal, setShowModal] = useState(false);
@@ -35,7 +34,6 @@ export default function DashboardPage() {
       totalEventos: prev.totalEventos + 1,
       eventosAtivos: prev.eventosAtivos + 1,
       severidadeAlta: eventData.severidade === 'alta' ? prev.severidadeAlta + 1 : prev.severidadeAlta,
-      novasOcorrencias: prev.novasOcorrencias + 1
     }));
 
     setShowModal(false);
@@ -176,11 +174,10 @@ export default function DashboardPage() {
           <p className="text-sm text-gray-600">Visão geral dos eventos extremos em tempo real</p>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
           <StatCard icon={Activity} title="Total de Eventos" value={stats.totalEventos} color="bg-blue-500" />
           <StatCard icon={AlertTriangle} title="Eventos Ativos" value={stats.eventosAtivos} color="bg-red-500" />
           <StatCard icon={TrendingUp} title="Severidade Alta" value={stats.severidadeAlta} color="bg-orange-500" />
-          <StatCard icon={Bell} title="Novas Ocorrências" value={stats.novasOcorrencias} color="bg-green-500" />
         </div>
 
         <div className="bg-white rounded-xl p-4 shadow-lg">
