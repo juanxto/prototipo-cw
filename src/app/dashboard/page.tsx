@@ -1,8 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
-import { AlertTriangle, MapPin, TrendingUp, Bell, Activity, FileX } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import ProtectedRoute from '../../components/ProtectedRoute';
+import { AlertTriangle, MapPin, TrendingUp, Bell, Activity, FileX, Loader2, Eye, EyeOff } from 'lucide-react';
 import Header from '../../components/Header';
+
+const API_BASE_URL = 'https://corewaveapi.onrender.com';
 
 export default function DashboardPage() {
   const [stats, setStats] = useState({
@@ -13,6 +16,210 @@ export default function DashboardPage() {
 
   const [showModal, setShowModal] = useState(false);
   const [eventos, setEventos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(null);
+  const [expandedDescriptions, setExpandedDescriptions] = useState(new Set());
+
+  // Função para corrigir acentos
+  // Função para corrigir acentos (versão final correta)
+const fixEncoding = (text) => {
+  if (!text || typeof text !== 'string') return text;
+  
+  const encodingMap = {
+    'Ã¡': 'á', 'Ã ': 'à', 'Ã¢': 'â', 'Ã£': 'ã', 'Ã¤': 'ä',
+    'Ã©': 'é', 'Ã¨': 'è', 'Ãª': 'ê', 'Ã«': 'ë',
+    'Ã­': 'í', 'Ã¬': 'ì', 'Ã®': 'î', 'Ã¯': 'ï',
+    'Ã³': 'ó', 'Ã²': 'ò', 'Ã´': 'ô', 'Ãµ': 'õ', 'Ã¶': 'ö',
+    'Ãº': 'ú', 'Ã¹': 'ù', 'Ã»': 'û', 'Ã¼': 'ü',
+    'Ã§': 'ç', 'Ã±': 'ñ',
+    'Ã': 'Á', 'Ã€': 'À', 'Ã‚': 'Â', 'Ãƒ': 'Ã', 'Ã„': 'Ä',
+    'Ã‰': 'É', 'Ãˆ': 'È', 'ÃŠ': 'Ê', 'Ã‹': 'Ë',
+    'Ã': 'Í', 'ÃŒ': 'Ì', 'ÃŽ': 'Î', 'Ã': 'Ï',
+    'Ã“': 'Ó', 'Ã’': 'Ò', 'Ã”': 'Ô', 'Ã•': 'Õ', 'Ã–': 'Ö',
+    'Ãš': 'Ú', 'Ã™': 'Ù', 'Ã›': 'Û', 'Ãœ': 'Ü',
+    'Ã‡': 'Ç', 'Ã‘': 'Ñ'
+  };
+
+  let fixedText = text;
+  Object.keys(encodingMap).forEach(key => {
+    fixedText = fixedText.replace(new RegExp(key, 'g'), encodingMap[key]);
+  });
+
+  return fixedText;
+};
+
+
+  // Função para processar eventos e corrigir encoding
+  const processEventos = (eventosRaw) => {
+    return eventosRaw.map(evento => ({
+      ...evento,
+      name: fixEncoding(evento.name),
+      place: fixEncoding(evento.place),
+      description: fixEncoding(evento.description),
+      eventType: fixEncoding(evento.eventType)
+    }));
+  };
+
+  // Toggle descrição expandida
+  const toggleDescription = (eventId) => {
+    setExpandedDescriptions(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(eventId)) {
+        newSet.delete(eventId);
+      } else {
+        newSet.add(eventId);
+      }
+      return newSet;
+    });
+  };
+
+  // Carregar eventos da API
+  const fetchEventos = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      console.log('Tentando conectar com:', `${API_BASE_URL}/events?page=1&size=50`);
+      
+      const response = await fetch(`${API_BASE_URL}/events?page=1&size=50`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        mode: 'cors',
+      });
+      
+      console.log('Resposta da API:', response.status, response.statusText);
+      
+      if (!response.ok) {
+        throw new Error(`Erro na API: ${response.status} - ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      console.log('Dados recebidos:', data);
+      
+      if (data && data.data) {
+        // Filtrar apenas eventos não deletados e processar encoding
+        const eventosAtivos = processEventos(data.data.filter(evento => !evento.deleted));
+        
+        setEventos(eventosAtivos);
+        
+        // Calcular estatísticas
+        const eventosAltaRisco = eventosAtivos.filter(evento => evento.eventRisk === 'alta').length;
+        
+        setStats({
+          totalEventos: data.totalItens || eventosAtivos.length,
+          eventosAtivos: eventosAtivos.length,
+          severidadeAlta: eventosAltaRisco,
+        });
+      } else {
+        console.log('Estrutura de dados inesperada:', data);
+        setEventos([]);
+        setStats({ totalEventos: 0, eventosAtivos: 0, severidadeAlta: 0 });
+      }
+    } catch (err) {
+      console.error('Erro detalhado ao carregar eventos:', err);
+      
+      // Verificar se é um erro de rede/CORS
+      if (err.name === 'TypeError' && err.message.includes('fetch')) {
+        setError('Erro de conexão com a API. Verifique se a API está online e as configurações de CORS.');
+      } else {
+        setError(`Erro ao carregar eventos: ${err.message}`);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Adicionar novo evento
+  const createEvento = async (eventData) => {
+    try {
+      setSubmitting(true);
+      setError(null);
+
+      const payload = {
+        name: eventData.nome,
+        eventType: eventData.tipo.toLowerCase(),
+        eventRisk: eventData.severidade,
+        place: eventData.local,
+        description: eventData.descricao || `Evento de ${eventData.tipo} registrado em ${eventData.local}`,
+      };
+
+      console.log('Enviando evento:', payload);
+
+      const response = await fetch(`${API_BASE_URL}/events`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        mode: 'cors',
+        body: JSON.stringify(payload),
+      });
+
+      console.log('Resposta ao criar evento:', response.status, response.statusText);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Erro detalhado:', errorText);
+        throw new Error(`Erro ao criar evento: ${response.status} - ${response.statusText}`);
+      }
+
+      // Recarregar a lista de eventos
+      await fetchEventos();
+      setShowModal(false);
+      
+    } catch (err) {
+      console.error('Erro ao criar evento:', err);
+      if (err.name === 'TypeError' && err.message.includes('fetch')) {
+        setError('Erro de conexão ao adicionar evento. Verifique sua conexão e tente novamente.');
+      } else {
+        setError(`Erro ao adicionar evento: ${err.message}`);
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // Deletar evento
+  const deleteEvento = async (eventId) => {
+    try {
+      console.log('Deletando evento:', eventId);
+      
+      const response = await fetch(`${API_BASE_URL}/events/${eventId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        mode: 'cors',
+      });
+
+      console.log('Resposta ao deletar evento:', response.status, response.statusText);
+
+      if (!response.ok) {
+        throw new Error(`Erro ao deletar evento: ${response.status} - ${response.statusText}`);
+      }
+
+      // Recarregar a lista de eventos
+      await fetchEventos();
+      
+    } catch (err) {
+      console.error('Erro ao deletar evento:', err);
+      if (err.name === 'TypeError' && err.message.includes('fetch')) {
+        setError('Erro de conexão ao deletar evento. Verifique sua conexão e tente novamente.');
+      } else {
+        setError(`Erro ao deletar evento: ${err.message}`);
+      }
+    }
+  };
+
+  // Carregar dados iniciais
+  useEffect(() => {
+    fetchEventos();
+  }, []);
 
   const handleAddEvent = () => {
     setShowModal(true);
@@ -20,23 +227,11 @@ export default function DashboardPage() {
 
   const handleCloseModal = () => {
     setShowModal(false);
+    setError(null);
   };
 
   const handleSubmitEvent = (eventData) => {
-    const novoEvento = {
-      id: Date.now(),
-      ...eventData,
-      tempo: 'Agora'
-    };
-
-    setEventos([...eventos, novoEvento]);
-    setStats(prev => ({
-      totalEventos: prev.totalEventos + 1,
-      eventosAtivos: prev.eventosAtivos + 1,
-      severidadeAlta: eventData.severidade === 'alta' ? prev.severidadeAlta + 1 : prev.severidadeAlta,
-    }));
-
-    setShowModal(false);
+    createEvento(eventData);
   };
 
   const StatCard = ({ icon: Icon, title, value, color, trend }) => (
@@ -55,6 +250,7 @@ export default function DashboardPage() {
 
   const EventModal = () => {
     const [formData, setFormData] = useState({
+      nome: '',
       tipo: '',
       local: '',
       severidade: 'baixa',
@@ -67,7 +263,7 @@ export default function DashboardPage() {
     };
 
     const handleSubmit = () => {
-      if (formData.tipo && formData.local) {
+      if (formData.nome && formData.tipo && formData.local) {
         handleSubmitEvent(formData);
       }
     };
@@ -75,11 +271,29 @@ export default function DashboardPage() {
     if (!showModal) return null;
 
     return (
-      <div className="fixed inset-0 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+      <div className="fixed inset-0 backdrop-blur-xs bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
         <div className="bg-white rounded-xl p-4 sm:p-6 w-full max-w-md mx-auto">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">Adicionar Novo Evento</h3>
 
+          {error && (
+            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
+              {error}
+            </div>
+          )}
+
           <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Nome do Evento</label>
+              <input
+                type="text"
+                name="nome"
+                value={formData.nome}
+                onChange={handleInputChange}
+                placeholder="Ex: Enchente Rio Tietê"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              />
+            </div>
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de Evento</label>
               <select
@@ -89,12 +303,12 @@ export default function DashboardPage() {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
               >
                 <option value="">Selecione o tipo</option>
-                <option value="Enchente">Enchente</option>
-                <option value="Incêndio">Incêndio</option>
-                <option value="Terremoto">Terremoto</option>
-                <option value="Deslizamento">Deslizamento</option>
-                <option value="Vendaval">Vendaval</option>
-                <option value="Granizo">Granizo</option>
+                <option value="enchente">Enchente</option>
+                <option value="incendio">Incêndio</option>
+                <option value="terremoto">Terremoto</option>
+                <option value="deslizamento">Deslizamento</option>
+                <option value="vendaval">Vendaval</option>
+                <option value="granizo">Granizo</option>
               </select>
             </div>
 
@@ -119,13 +333,13 @@ export default function DashboardPage() {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
               >
                 <option value="baixa">Baixa</option>
-                <option value="média">Média</option>
+                <option value="media">Média</option>
                 <option value="alta">Alta</option>
               </select>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Descrição (opcional)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Descrição</label>
               <textarea
                 name="descricao"
                 value={formData.descricao}
@@ -139,15 +353,24 @@ export default function DashboardPage() {
             <div className="flex flex-col sm:flex-row gap-3 pt-4">
               <button
                 onClick={handleCloseModal}
-                className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300"
+                disabled={submitting}
+                className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 disabled:opacity-50"
               >
                 Cancelar
               </button>
               <button
                 onClick={handleSubmit}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                disabled={submitting || !formData.nome || !formData.tipo || !formData.local}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 flex items-center justify-center"
               >
-                Adicionar Evento
+                {submitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Adicionando...
+                  </>
+                ) : (
+                  'Adicionar Evento'
+                )}
               </button>
             </div>
           </div>
@@ -164,6 +387,19 @@ export default function DashboardPage() {
     </div>
   );
 
+  // Função para mapear tipos de eventos para ícones/cores
+  const getEventTypeInfo = (eventType) => {
+    const types = {
+      enchente: { color: 'bg-blue-100 text-blue-800', icon: '🌊' },
+      incendio: { color: 'bg-red-100 text-red-800', icon: '🔥' },
+      deslizamento: { color: 'bg-yellow-100 text-yellow-800', icon: '⛰️' },
+      terremoto: { color: 'bg-purple-100 text-purple-800', icon: '🌍' },
+      vendaval: { color: 'bg-gray-100 text-gray-800', icon: '💨' },
+      granizo: { color: 'bg-cyan-100 text-cyan-800', icon: '🧊' },
+    };
+    return types[eventType] || { color: 'bg-gray-100 text-gray-800', icon: '⚠️' };
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header onAddEvent={handleAddEvent} />
@@ -174,26 +410,87 @@ export default function DashboardPage() {
           <p className="text-sm text-gray-600">Visão geral dos eventos extremos em tempo real</p>
         </div>
 
+        {error && !loading && (
+          <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+            <div className="flex flex-col gap-2">
+              <span className="font-medium">⚠️ Erro de Conexão</span>
+              <span className="text-sm">{error}</span>
+              <div className="flex gap-2 mt-2">
+                <button
+                  onClick={fetchEventos}
+                  className="text-red-800 hover:text-red-900 underline text-sm"
+                >
+                  Tentar novamente
+                </button>
+                <button
+                  onClick={() => {
+                    console.log('Testando conexão com API...');
+                    fetch(`${API_BASE_URL}/events?page=1&size=1`)
+                      .then(response => {
+                        console.log('Teste de conexão:', response.status, response.statusText);
+                        return response.json();
+                      })
+                      .then(data => console.log('Dados de teste:', data))
+                      .catch(err => console.error('Erro no teste:', err));
+                  }}
+                  className="text-red-800 hover:text-red-900 underline text-sm"
+                >
+                  Testar conexão
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-          <StatCard icon={Activity} title="Total de Eventos" value={stats.totalEventos} color="bg-blue-500" />
-          <StatCard icon={AlertTriangle} title="Eventos Ativos" value={stats.eventosAtivos} color="bg-red-500" />
-          <StatCard icon={TrendingUp} title="Severidade Alta" value={stats.severidadeAlta} color="bg-orange-500" />
+          <StatCard 
+            icon={Activity} 
+            title="Total de Eventos" 
+            value={loading ? '-' : stats.totalEventos} 
+            color="bg-blue-500" 
+          />
+          <StatCard 
+            icon={AlertTriangle} 
+            title="Eventos Ativos" 
+            value={loading ? '-' : stats.eventosAtivos} 
+            color="bg-red-500" 
+          />
+          <StatCard 
+            icon={TrendingUp} 
+            title="Severidade Alta" 
+            value={loading ? '-' : stats.severidadeAlta} 
+            color="bg-orange-500" 
+          />
         </div>
 
         <div className="bg-white rounded-xl p-4 shadow-lg">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-2">
             <h3 className="text-base font-semibold text-gray-800">Eventos Recentes</h3>
-            {eventos.length > 0 && (
+            <div className="flex gap-2">
               <button
-                onClick={handleAddEvent}
-                className="text-red-600 hover:text-red-700 text-sm font-medium"
+                onClick={fetchEventos}
+                disabled={loading}
+                className="text-blue-600 hover:text-blue-700 text-sm font-medium disabled:opacity-50"
               >
-                Adicionar mais
+                {loading ? 'Carregando...' : 'Atualizar'}
               </button>
-            )}
+              {eventos.length > 0 && (
+                <button
+                  onClick={handleAddEvent}
+                  className="text-red-600 hover:text-red-700 text-sm font-medium"
+                >
+                  Adicionar mais
+                </button>
+              )}
+            </div>
           </div>
 
-          {eventos.length === 0 ? (
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+              <span className="ml-2 text-gray-600">Carregando eventos...</span>
+            </div>
+          ) : eventos.length === 0 ? (
             <EmptyState
               title="Nenhum evento encontrado"
               description="Clique em 'Adicionar Evento' para começar a monitorar eventos extremos"
@@ -201,29 +498,73 @@ export default function DashboardPage() {
             />
           ) : (
             <div className="space-y-3">
-              {eventos.map((event) => (
-                <div key={event.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 gap-3">
-                  <div className="flex items-center">
-                    <MapPin className="w-5 h-5 text-gray-400 mr-3" />
-                    <div>
-                      <p className="font-medium text-gray-800 text-sm">{event.tipo}</p>
-                      <p className="text-xs text-gray-600">{event.local}</p>
+              {eventos.map((event) => {
+                const typeInfo = getEventTypeInfo(event.eventType);
+                const isDescriptionExpanded = expandedDescriptions.has(event.id);
+                
+                return (
+                  <div key={event.id} className="border border-gray-200 rounded-lg hover:bg-gray-50">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 gap-3">
+                      <div className="flex items-center">
+                        <div className="mr-3 text-lg">{typeInfo.icon}</div>
+                        <div>
+                          <p className="font-medium text-gray-800 text-sm">{event.name}</p>
+                          <p className="text-xs text-gray-600 flex items-center">
+                            <MapPin className="w-3 h-3 mr-1" />
+                            {event.place}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${typeInfo.color}`}>
+                          {event.eventType}
+                        </span>
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                          event.eventRisk === 'alta'
+                            ? 'bg-red-100 text-red-800'
+                            : event.eventRisk === 'media'
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : 'bg-green-100 text-green-800'
+                        }`}>
+                          {event.eventRisk}
+                        </span>
+                        {event.description && (
+                          <button
+                            onClick={() => toggleDescription(event.id)}
+                            className="text-blue-600 hover:text-blue-800 text-xs px-2 py-1 rounded flex items-center gap-1"
+                            title={isDescriptionExpanded ? "Ocultar descrição" : "Ver descrição"}
+                          >
+                            {isDescriptionExpanded ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                            {isDescriptionExpanded ? 'Ocultar' : 'Ver mais'}
+                          </button>
+                        )}
+                        <button
+                          onClick={() => {
+                            if (window.confirm('Tem certeza que deseja deletar este evento?')) {
+                              deleteEvento(event.id);
+                            }
+                          }}
+                          className="text-red-600 hover:text-red-800 text-xs px-2 py-1 rounded"
+                        >
+                          Deletar
+                        </button>
+                      </div>
                     </div>
+                    
+                    {/* Descrição expandida */}
+                    {isDescriptionExpanded && event.description && (
+                      <div className="px-3 pb-3 border-t border-gray-100 mt-2 pt-2">
+                        <div className="bg-gray-50 rounded-lg p-3">
+                          <p className="text-sm text-gray-700 font-medium mb-1">Descrição:</p>
+                          <p className="text-sm text-gray-600 leading-relaxed">
+                            {event.description}
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  <div className="flex items-center space-x-3">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      event.severidade === 'alta'
-                        ? 'bg-red-100 text-red-800'
-                        : event.severidade === 'média'
-                        ? 'bg-yellow-100 text-yellow-800'
-                        : 'bg-green-100 text-green-800'
-                    }`}>
-                      {event.severidade}
-                    </span>
-                    <span className="text-xs text-gray-500">{event.tempo}</span>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

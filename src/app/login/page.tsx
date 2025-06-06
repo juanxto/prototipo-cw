@@ -1,11 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { User, Lock, Eye, EyeOff, Users, Info } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
 
-const LoginPage = () => {
+export default function LoginPage() {
   const router = useRouter();
+  const { login, isAuthenticated } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
@@ -14,23 +16,29 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleSubmit = async (e: { preventDefault: () => void; }) => {
+  // Redirect se já estiver logado
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push('/dashboard');
+    }
+  }, [isAuthenticated, router]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
     
-    // Verificar credenciais fixas
-    if (formData.email === 'admin' && formData.password === 'password') {
-      setTimeout(() => {
-        setLoading(false);
+    // Simular delay de login
+    setTimeout(() => {
+      const success = login(formData.email, formData.password);
+      
+      if (success) {
         router.push('/dashboard');
-      }, 1000);
-    } else {
-      setTimeout(() => {
-        setLoading(false);
+      } else {
         setError('Credenciais inválidas. Use admin/password');
-      }, 1000);
-    }
+      }
+      setLoading(false);
+    }, 1000);
   };
 
   const handleIntegrantesClick = () => {
@@ -167,5 +175,3 @@ const LoginPage = () => {
     </div>
   );
 };
-
-export default LoginPage;
