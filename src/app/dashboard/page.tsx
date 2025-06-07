@@ -1,13 +1,13 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import ProtectedRoute from '../../components/ProtectedRoute';
 import { AlertTriangle, MapPin, TrendingUp, Bell, Activity, FileX, Loader2, Eye, EyeOff } from 'lucide-react';
 import Header from '../../components/Header';
+import ProtectedRoute from '../../components/ProtectedRoute';
 
 const API_BASE_URL = 'https://corewaveapi.onrender.com';
 
-export default function DashboardPage() {
+function DashboardContent() {
   const [stats, setStats] = useState({
     totalEventos: 0,
     eventosAtivos: 0,
@@ -22,7 +22,6 @@ export default function DashboardPage() {
   const [expandedDescriptions, setExpandedDescriptions] = useState(new Set());
 
   // Função para corrigir acentos
-  // Função para corrigir acentos (versão final correta)
 const fixEncoding = (text) => {
   if (!text || typeof text !== 'string') return text;
   
@@ -572,5 +571,13 @@ const fixEncoding = (text) => {
 
       <EventModal />
     </div>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <ProtectedRoute>
+      <DashboardContent />
+    </ProtectedRoute>
   );
 }
