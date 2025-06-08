@@ -289,7 +289,7 @@ const fixEncoding = (text) => {
                 value={formData.nome}
                 onChange={handleInputChange}
                 placeholder="Ex: Enchente Rio Tietê"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                className="w-full px-3 py-2 border text-gray-700 border-gray-300 rounded-lg text-sm"
               />
             </div>
 
@@ -299,7 +299,7 @@ const fixEncoding = (text) => {
                 name="tipo"
                 value={formData.tipo}
                 onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                className="w-full px-3 py-2 border text-gray-700  border-gray-300 rounded-lg text-sm"
               >
                 <option value="">Selecione o tipo</option>
                 <option value="enchente">Enchente</option>
@@ -319,7 +319,7 @@ const fixEncoding = (text) => {
                 value={formData.local}
                 onChange={handleInputChange}
                 placeholder="Ex: São Paulo, SP"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                className="w-full px-3 py-2 border text-gray-700 border-gray-300 rounded-lg text-sm"
               />
             </div>
 
@@ -329,7 +329,7 @@ const fixEncoding = (text) => {
                 name="severidade"
                 value={formData.severidade}
                 onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                className="w-full px-3 py-2 border text-gray-700 border-gray-300 rounded-lg text-sm"
               >
                 <option value="baixa">Baixa</option>
                 <option value="media">Média</option>
@@ -345,7 +345,8 @@ const fixEncoding = (text) => {
                 onChange={handleInputChange}
                 rows={3}
                 placeholder="Descreva os detalhes do evento..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm
+                text-gray-700"
               />
             </div>
 
