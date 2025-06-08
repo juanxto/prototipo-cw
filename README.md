@@ -70,7 +70,7 @@ Este projeto foi desenvolvido como parte da Global Solutions, utilizando **Next.
 5. Acesse no navegador: [http://localhost:3000](http://localhost:3000)
  
 ## 📹 Vídeo de Apresentação
-🎥 O vídeo do projeto pode ser acessado [neste link]()
+🎥 O vídeo do projeto pode ser acessado [neste link](https://youtu.be/-D-UW-Wjeiw)
 
 
 ## 👥 Membros da Equipe
