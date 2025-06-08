@@ -39,8 +39,7 @@ Este projeto foi desenvolvido como parte da Global Solutions, utilizando **Next.
 ## 📢 Funcionalidades Implementadas
 ✅ Página de **Login** com validação de credenciais.  
 ✅ Página de **Membros da Equipe** com nomes, RM e turma.  
-✅ Sistema de **Relatórios** com filtros por data e tipo.
-✅ Sistema de **Falhas** com filtros por data e tipo e de adição.   
+✅ Sistema de **Monitoramento de Eventos** com detalhes e controles sobre os mesmos.   
 ✅ **Responsividade** para desktop, tablet e mobile.  
 ✅ **Componentização** seguindo boas práticas.  
 ✅ **Uso do GitHub** para versionamento do código.  
